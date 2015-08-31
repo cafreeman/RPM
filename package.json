@@ -1,0 +1,1 @@
+{"localRepoPath":"/Users/cfreeman/Desktop/testRepo","cranRepo":{"CRAN":"http://cran.us.r-project.org"},"masterPkgList":"dplyr","pkgType":"win.binary","rVersion":{"3.1":{"depList":["dplyr","assertthat","R6","Rcpp","magrittr","lazyeval","DBI","BH"]},"3.2":{"depList":["dplyr","assertthat","R6","Rcpp","magrittr","lazyeval","DBI","BH"]}}}
