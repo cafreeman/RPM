@@ -1,15 +1,19 @@
 library("rjson")
 library("miniCRAN")
 
+# load JSON config from file into an R object
 loadPkgJSON <- function(path) {
   fromJSON(file = normalizePath(path))
 }
 
+# convert config object to JSON and save to file
 writePkgJSON <- function(obj, configPath) {
   pkgJSON <- toJSON(obj)
   write(pkgJSON, configPath)
 }
 
+# Find all dependencies for a given list of packages. If no list is provided, find dependencies for
+# all local packages
 listDeps <- function(pkgList = NULL, rVersion, configPath) {
   obj <- loadPkgJSON(configPath)
   # Get full list of packages from CRAN
@@ -31,11 +35,15 @@ listDeps <- function(pkgList = NULL, rVersion, configPath) {
   }
 }
 
+# List all packages in the local repopsitory
 listLocalPkgs <- function(version, configPath) {
   obj <- loadPkgJSON(configPath)
   return(pkgAvail(repos = obj$localRepoPath, type = obj$pkgType, Rversion = version)[,1])
 }
 
+# Construct a local repo from a list of packages. buildRepo() finds all package dependencies,
+# downloads the appropriate files from CRAN, and creates a CRAN-like repo in the directory specified
+# in the config object
 buildRepo <- function(pkgList, configPath) {
   obj <- loadPkgJSON(configPath)
   # Get list of rVersions
@@ -66,6 +74,8 @@ buildRepo <- function(pkgList, configPath) {
   }
 }
 
+# Add a new package to the local repo, find all dependencies, and download everything.
+# Updates package manifest and config object
 rpmInstall <- function(newPkgs, configPath) {
   obj <- loadPkgJSON(configPath)
   versions <- names(obj$rVersion)
@@ -90,6 +100,7 @@ rpmInstall <- function(newPkgs, configPath) {
   return(pkgDelta)
 }
 
+# Check for outdated packages in the local repo
 rpmOutdated <- function(configPath) {
   obj <- loadPkgJSON(configPath)
   outdated <- oldPackages(path = obj$localRepoPath,
@@ -103,6 +114,7 @@ rpmOutdated <- function(configPath) {
   return(outdated)
 }
 
+# Update a given set of packages to their latest version
 rpmUpdate <- function(updatePkgs, configPath) {
   obj <- loadPkgJSON(configPath)
   versions <- names(obj$rVersion)
