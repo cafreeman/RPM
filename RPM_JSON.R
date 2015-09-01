@@ -118,6 +118,7 @@ rpmOutdated <- function(configPath) {
 rpmUpdate <- function(updatePkgs, configPath) {
   obj <- loadPkgJSON(configPath)
   versions <- names(obj$rVersion)
+  pkgDelta <- list()
   for (version in versions) {
     currentPkgList <- listLocalPkgs(version, configPath)
     updatePackages(path = obj$localRepoPath,
