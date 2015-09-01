@@ -5,12 +5,13 @@ loadPkgJSON <- function(path) {
   fromJSON(file = normalizePath(path))
 }
 
-writePkgJSON <- function(obj) {
+writePkgJSON <- function(obj, configPath) {
   pkgJSON <- toJSON(obj)
-  write(pkgJSON, "package.json")
+  write(pkgJSON, configPath)
 }
 
-listDeps <- function(pkgList = NULL, rVersion, obj) {
+listDeps <- function(pkgList = NULL, rVersion, configPath) {
+  obj <- loadPkgJSON(configPath)
   # Get full list of packages from CRAN
   pkgInfo <- pkgAvail(repos = obj$cranRepo, type = obj$pkgType)
   # Partially apply all of the pkgDep function args except pkgList
@@ -30,12 +31,13 @@ listDeps <- function(pkgList = NULL, rVersion, obj) {
   }
 }
 
-listLocalPkgs <- function(obj, version) {
+listLocalPkgs <- function(version, configPath) {
+  obj <- loadPkgJSON(configPath)
   return(pkgAvail(repos = obj$localRepoPath, type = obj$pkgType, Rversion = version)[,1])
 }
 
-buildRepo <- function(pkgList, obj) {
-  localObj <- obj
+buildRepo <- function(pkgList, configPath) {
+  obj <- loadPkgJSON(configPath)
   # Get list of rVersions
   versions <- names(obj$rVersion)
   # Create local repo dir if it doesn't exist
@@ -52,22 +54,20 @@ buildRepo <- function(pkgList, obj) {
              writePACKAGES = TRUE)
   }
   for (version in versions) {
-    # version <- as.character(version)
-    deps <- listDeps(pkgList, version, obj)
+    deps <- listDeps(pkgList, version, configPath)
     partialMakeRepo(pkgs = deps, Rversion = version)
     # Add dependencies list to package.json object
     obj$rVersion[[version]]$depList <- unique(deps)
   }
-  writePkgJSON(obj)
-  eval.parent(substitute(obj <- ))
-  obj -> eval(as.list(match.call())$obj)
+  writePkgJSON(obj, configPath)
   cat("Created repos for the following versions:\n")
   for (version in versions) {
     cat(paste0(version, "\n"))
   }
 }
 
-rpmInstall <- function(newPkgs, obj) {
+rpmInstall <- function(newPkgs, configPath) {
+  obj <- loadPkgJSON(configPath)
   versions <- names(obj$rVersion)
   partialAddPackage <- function(Rversion) {
     addPackage(pkgs = newPkgs,
@@ -78,13 +78,50 @@ rpmInstall <- function(newPkgs, obj) {
   }
   pkgDelta <- list()
   for (version in versions) {
-    oldPkgList <- listLocalPkgs(obj, version)
+    oldPkgList <- listLocalPkgs(version, configPath)
     partialAddPackage(version)
     # Get new package list and compare to original package list
-    newPkgList <- listLocalPkgs(obj, version)
+    newPkgList <- listLocalPkgs(version, configPath)
     pkgDelta[[version]] <- setdiff(newPkgList, oldPkgList)
     obj$rVersion[[version]]$depList <- newPkgList
   }
   obj$masterPkgList <- unique(c(obj$masterPkgList, newPkgs))
+  writePkgJSON(obj, configPath)
   return(pkgDelta)
+}
+
+rpmOutdated <- function(configPath) {
+  obj <- loadPkgJSON(configPath)
+  outdated <- oldPackages(path = obj$localRepoPath,
+                          repos = obj$cranRepo,
+                          type = obj$pkgType,
+                          Rversion = obj$rVersion)
+  cat("The following packages can be updated\n")
+  for (i in outdated[,"Packages"]) {
+    cat(paste0(i, "\n"))
+  }
+  return(outdated)
+}
+
+rpmUpdate <- function(updatePkgs, configPath) {
+  obj <- loadPkgJSON(configPath)
+  versions <- names(obj$rVersion)
+  for (version in versions) {
+    currentPkgList <- listLocalPkgs(version, configPath)
+    updatePackages(path = obj$localRepoPath,
+                   repos = obj$cranRepo,
+                   ask = FALSE,
+                   oldPkgs = updatePkgs,
+                   type = obj$pkgType,
+                   Rversion = version)
+    newPkgList <- listLocalPkgs(version, configPath)
+    pkgDelta[[version]] <- setdiff(newPkgList, currentPkgList)
+  }
+  cat("The following packages have been updated:\n")
+  for (i in names(pkgDelta)) {
+    cat(paste0("R version ", i, "\n"))
+    for (j in pkgDelta[[i]]) {
+      cat(paste0(j, "\n"))
+    }
+  }
 }
