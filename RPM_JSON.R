@@ -130,6 +130,19 @@ rpmInstall <- function(newPkgs, configPath) {
   }
   obj$masterPkgList <- unique(c(obj$masterPkgList, newPkgs))
   writePkgJSON(obj, configPath)
+  if (length(alreadyInstalled) > 0) {
+    cat("The following packages were already installed and therefore were not downloaded:\n")
+    for (i in alreadyInstalled) {
+      cat(paste0(i, "\n"))
+    }
+  }
+  cat("The following packages have been installed:")
+  for (i in names(pkgDelta)) {
+    cat(paste0(i, ":\n"))
+    for (j in pkgDelta[[i]]) {
+      cat(paste0(j, "\n"))
+    }
+  }
   return(pkgDelta)
 }
 
