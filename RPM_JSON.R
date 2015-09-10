@@ -61,7 +61,7 @@ listDeps <- function(pkgList = NULL, rVersion, configPath) {
 # List all packages in the local repopsitory
 listLocalPkgs <- function(version, configPath) {
   obj <- loadPkgJSON(configPath)
-  return(pkgAvail(repos = obj$localRepoPath, type = obj$pkgType, Rversion = version)[,1])
+  return(as.character(pkgAvail(repos = obj$localRepoPath, type = obj$pkgType, Rversion = version)[,1]))
 }
 
 # Construct a local repo from a list of packages. buildRepo() finds all package dependencies,
