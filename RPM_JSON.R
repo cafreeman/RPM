@@ -22,6 +22,13 @@ writePkgJSON <- function(obj, configPath) {
   write(pkgJSON, configPath)
 }
 
+# Take a set of packages and find the set of dependenices that are unique to only those packages
+# This allows us to delete dependencies without breaking the dependencies of other packages
+findUniqueDeps <- function(removeList, rVersion, obj) {
+  remainingPkgs <- setdiff(obj$masterPkgList, removeList)
+  removeDeps <- listDeps(removeList, rVersion, obj)
+  remainingDeps <- listDeps(remainingPkgs, rVersion, obj)
+  return(setdiff(removeDeps, remainingDeps))
 }
 
 # Find all dependencies for a given list of packages. If no list is provided, find dependencies for
@@ -200,4 +207,44 @@ rpmUpdate <- function(updatePkgs, configPath) {
       cat(paste0(j, "\n"))
     }
   }
+}
+
+# Take a set of packages and delete them as well as their unique dependencies. Repo indexes and JSON
+# config file are updated accordingly
+rpmUninstall <- function(removeList, configPath) {
+  obj <- loadPkgJSON(configPath)
+  # Check if any of the user-provided packages are not already installed
+  notInstalled <- Filter(function(pkg) {
+    !(pkg %in% obj$masterPkgList)
+  }, removeList)
+  # Prune the list of packages to delete by removing anything that isn't actually installed
+  removeList <- removeList[!removeList %in% notInstalled]
+  # If none of the requested packages are installed, stop processing
+  if (length(removeList) == 0) {
+    stop("None of the packages provided are currently installed.")
+  }
+  # If some of the requested packages are not installed, send and alert and continue processing
+  # with the packages that ARE installed
+  if (length(notInstalled > 0)) {
+    cat("The following packages are not installed and thus cannot be removed:\n")
+    for(i in notInstalled) {
+      cat(paste0(i, "\n"))
+    }
+  }
+  versions <- names(obj$rVersion)
+  for (version in versions) {
+    # Create a list of packages to delete, including unique dependencies for all user-provided packages
+    toBeDeleted <- findUniqueDeps(removeList, version, obj)
+    # Obtain filepaths for each package in the local repo
+    fullDeletedPaths <- checkVersions(toBeDeleted, obj$localRepoPath, obj$pkgType, version)
+    # Manually delete the package files
+    file.remove(fullDeletedPaths)
+    # Update the local repo's package index to reflect the deletions
+    updateRepoIndex(obj$localRepoPath, obj$pkgType, version)
+    # Update the dependency list in the config file to reflect the deletions
+    obj$rVersion[[version]]$depList <- setdiff(obj$rVersion[[version]]$depList, toBeDeleted)
+  }
+  # Update the master list in the config file to reflect the deletions
+  obj$masterPkgList <- setdiff(obj$masterPkgList, removeList)
+  writePkgJSON(obj, configPath)
 }
