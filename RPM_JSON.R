@@ -16,6 +16,25 @@ writePkgJSON <- function(obj, configPath) {
   write(pkgJSON, configPath)
 }
 
+# initialize config object and save as JSON
+rpmInit <- function(localRepoPath,
+                    cranRepo = "http://cran.us.r-project.org",
+                    masterPkgList,
+                    pkgType,
+                    versions,
+                    savePath) {
+  obj <- list()
+  obj$localRepoPath <- localRepoPath
+  obj$cranRepo <- c(CRAN = cranRepo)
+  obj$masterPkgList <- as.character(masterPkgList)
+  obj$pkgType <- pkgType
+  obj$rVersion <- list()
+  for (version in versions) {
+    obj$rVersion[[version]] <- list(depList = character())
+  }
+  writePkgJSON(obj, savePath)
+}
+
 # Find all dependencies for a given list of packages. If no list is provided, find dependencies for
 # all local packages
 listDeps <- function(pkgList = NULL, rVersion, configPath) {
