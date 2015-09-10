@@ -76,7 +76,7 @@ buildRepo <- function(pkgList = NULL, configPath) {
              writePACKAGES = TRUE)
   }
   for (version in versions) {
-    deps <- listDeps(pkgList, version, configPath)
+    deps <- listDeps(pkgList, version, obj)
     partialMakeRepo(pkgs = deps, Rversion = version)
     # Add dependencies list to package.json object
     obj$rVersion[[version]]$depList <- unique(deps)
