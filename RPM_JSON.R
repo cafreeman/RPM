@@ -172,14 +172,17 @@ rpmUpdate <- function(updatePkgs, configPath) {
   obj <- loadPkgJSON(configPath)
   versions <- names(obj$rVersion)
   pkgDelta <- list()
-  for (version in versions) {
-    currentPkgList <- listLocalPkgs(version, configPath)
+  partialUpdatePackages <- function(Rversion) {
     updatePackages(path = obj$localRepoPath,
                    repos = obj$cranRepo,
                    ask = FALSE,
                    oldPkgs = updatePkgs,
                    type = obj$pkgType,
-                   Rversion = version)
+                   Rversion = Rversion)
+  }
+  for (version in versions) {
+    currentPkgList <- listLocalPkgs(version, configPath)
+    partialUpdatePackages(version)
     newPkgList <- listLocalPkgs(version, configPath)
     pkgDelta[[version]] <- setdiff(newPkgList, currentPkgList)
   }
