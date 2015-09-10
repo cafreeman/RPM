@@ -26,8 +26,7 @@ writePkgJSON <- function(obj, configPath) {
 
 # Find all dependencies for a given list of packages. If no list is provided, find dependencies for
 # all local packages
-listDeps <- function(pkgList = NULL, rVersion, configPath) {
-  obj <- loadPkgJSON(configPath)
+listDeps <- function(pkgList = NULL, rVersion, obj) {
   # Get full list of packages from CRAN
   pkgInfo <- pkgAvail(repos = obj$cranRepo, type = obj$pkgType)
   # Partially apply all of the pkgDep function args except pkgList
