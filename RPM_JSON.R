@@ -52,6 +52,25 @@ listLocalPkgs <- function(version, configPath) {
   return(as.character(pkgAvail(repos = obj$localRepoPath, type = obj$pkgType, Rversion = version)[,1]))
 }
 
+# initialize config object and save as JSON
+rpmInit <- function(localRepoPath,
+                    cranRepo = "http://cran.us.r-project.org",
+                    masterPkgList,
+                    pkgType,
+                    versions,
+                    savePath) {
+  obj <- list()
+  obj$localRepoPath <- localRepoPath
+  obj$cranRepo <- c(CRAN = cranRepo)
+  obj$masterPkgList <- as.character(masterPkgList)
+  obj$pkgType <- pkgType
+  obj$rVersion <- list()
+  for (version in versions) {
+    obj$rVersion[[version]] <- list(depList = character())
+  }
+  writePkgJSON(obj, savePath)
+}
+
 # Construct a local repo from a list of packages. buildRepo() finds all package dependencies,
 # downloads the appropriate files from CRAN, and creates a CRAN-like repo in the directory specified
 # in the config object
