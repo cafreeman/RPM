@@ -67,9 +67,12 @@ listLocalPkgs <- function(version, configPath) {
 # Construct a local repo from a list of packages. buildRepo() finds all package dependencies,
 # downloads the appropriate files from CRAN, and creates a CRAN-like repo in the directory specified
 # in the config object
-buildRepo <- function(pkgList, configPath) {
+buildRepo <- function(pkgList = NULL, configPath) {
   obj <- loadPkgJSON(configPath)
   # Get list of rVersions
+  if (is.null(pkgList)) {
+    pkgList <- obj$masterPkgList
+  }
   versions <- names(obj$rVersion)
   # Create local repo dir if it doesn't exist
   if (!file.exists(obj$localRepoPath)) {
