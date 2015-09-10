@@ -1,5 +1,11 @@
 library("rjson")
 library("miniCRAN")
+library("stringr")
+
+# convert a new-line separated list to a character vector
+newLinesToChar <- function(list, fixed = FALSE) {
+  str_trim(as.character(strsplit(list, "\\n", fixed = fixed)[[1]]), "both")
+}
 
 # load JSON config from file into an R object
 loadPkgJSON <- function(path) {
