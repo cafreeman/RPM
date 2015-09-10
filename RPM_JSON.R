@@ -9,6 +9,10 @@ loadPkgJSON <- function(path) {
 # convert config object to JSON and save to file
 writePkgJSON <- function(obj, configPath) {
   pkgJSON <- toJSON(obj)
+  dirPath <- dirname(configPath)
+  if (!dir.exists(dirPath)) {
+    dir.create(dirPath, recursive = TRUE)
+  }
   write(pkgJSON, configPath)
 }
 
