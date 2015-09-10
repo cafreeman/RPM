@@ -104,6 +104,13 @@ buildRepo <- function(pkgList = NULL, configPath) {
 # Updates package manifest and config object
 rpmInstall <- function(newPkgs, configPath) {
   obj <- loadPkgJSON(configPath)
+  alreadyInstalled <- Filter(function(pkg) {
+    pkg %in% obj$masterPkgList
+  }, newPkgs)
+  newPkgs <- newPkgs[!newPkgs %in% alreadyInstalled]
+  if (length(newPkgs) == 0) {
+    stop("All of the provided packages have already been installed.")
+  }
   versions <- names(obj$rVersion)
   partialAddPackage <- function(Rversion) {
     addPackage(pkgs = newPkgs,
