@@ -1,8 +1,8 @@
 ## R Package Manager
 
-An R package management tool, built on MiniCRAN and heavily influenced by the Node.js (NPM package manager)[https://github.com/npm/npm].
+An R package management tool, built on MiniCRAN and heavily influenced by the Node.js [NPM package manager](https://github.com/npm/npm).
 
-RPM is (currently) a set of functions built on top of (miniCRAN)[https://github.com/RevolutionAnalytics/miniCRAN] which allows you create and manipulate a local, CRAN-like repository of R packages. This local repository can track dependencies across different versions of R as well as maintain repositories of different package types (e.g. source code, binaries).
+RPM is (currently) a set of functions built on top of [miniCRAN](https://github.com/RevolutionAnalytics/miniCRAN) which allows you create and manipulate a local, CRAN-like repository of R packages. This local repository can track dependencies across different versions of R as well as maintain repositories of different package types (e.g. source code, binaries).
 
 RPM builds on miniCRAN by tracking the state of your repository in a JSON file, similar to NPM's `package.json` convention. This allows the user to perform RPM actions in different R sessions and ensure that the state of RPM repository is maintained across runs. As a result, once a user creates the initial config file (with `rpmInit`), they can then perform other actions on the existing repo solely by providing the path to the config file itself when calling a new RPM function. One of the major benefits of this is that the JSON config object can be version-controlled without having to VC the rest of your repository, since the JSON file will always reflect the most recent state of all your different repositories (across versions of R, for instance).
 
