@@ -149,13 +149,20 @@ rpmInstall <- function(newPkgs, configPath) {
 # Check for outdated packages in the local repo
 rpmOutdated <- function(configPath) {
   obj <- loadPkgJSON(configPath)
-  outdated <- oldPackages(path = obj$localRepoPath,
-                          repos = obj$cranRepo,
-                          type = obj$pkgType,
-                          Rversion = obj$rVersion)
+  versions <- names(obj$rVersion)
+  outdated <- list()
+  for (version in versions) {
+    outdated[[version]] <- oldPackages(path = obj$localRepoPath,
+                            repos = obj$cranRepo,
+                            type = obj$pkgType,
+                            Rversion = version)
+  }
   cat("The following packages can be updated\n")
-  for (i in outdated[,"Packages"]) {
-    cat(paste0(i, "\n"))
+  for (i in names(outdated)) {
+    cat(paste0(i, ":\n"))
+    for (j in outdated[[version]]) {
+      cat(paste0(j, "\n"))
+    }
   }
   return(outdated)
 }
