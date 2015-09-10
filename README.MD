@@ -31,6 +31,6 @@ RPM has 4 main actions:
   - `buildRepo`: Create a miniCRAN repo based on the contents of the JSON config file.
   - `rpmInstall`: Add a new package to the miniCRAN repo and download all necessary dependencies
   - `rpmUpdate`: Update packages in the miniCRAN repo to their most recent versions. You can either update all packages, or specify a subset of our current repo.
-  - 'rpmUninstall`: Remove a set of packages from the repo. The user need only specify the package they want remove and `rpmUninstall` will find any unique dependencies of that package and delete them as well.
+  - `rpmUninstall`: Remove a set of packages from the repo. The user need only specify the package they want remove and `rpmUninstall` will find any unique dependencies of that package and delete them as well.
 
 Since the user's local repository will (most likely) change any time one of these actions is performed, the changes are reflected in the JSON config file so that the user can always pick up where they left off.
