@@ -53,10 +53,15 @@ listDeps <- function(pkgList = NULL, rVersion, obj) {
   }
 }
 
-# List all packages in the local repopsitory
-listLocalPkgs <- function(version, configPath) {
+# List all packages in the local repository
+listLocalPkgs <- function(configPath) {
   obj <- loadPkgJSON(configPath)
-  return(as.character(pkgAvail(repos = obj$localRepoPath, type = obj$pkgType, Rversion = version)[,1]))
+  versions <- names(obj$rVersion)
+  installed <- list()
+  for (version in versions) {
+    installed[[paste0("v", version)]] <- as.character(pkgAvail(repos = obj$localRepoPath, type = obj$pkgType, Rversion = version)[,1])
+  }
+  return(installed)
 }
 
 # initialize config object and save as JSON
@@ -88,6 +93,10 @@ buildRepo <- function(pkgList = NULL, configPath) {
     pkgList <- obj$masterPkgList
   }
   versions <- names(obj$rVersion)
+  # Remove previous repo if it exists (this is for the case of rebuilding the repo)
+  if (file.exists(obj$localRepoPath)) {
+    unlink(obj$localRepoPath, recursive = TRUE)
+  }
   # Create local repo dir if it doesn't exist
   if (!file.exists(obj$localRepoPath)) {
     dir.create(obj$localRepoPath)
@@ -235,6 +244,9 @@ rpmUninstall <- function(removeList, configPath) {
   for (version in versions) {
     # Create a list of packages to delete, including unique dependencies for all user-provided packages
     toBeDeleted <- findUniqueDeps(removeList, version, obj)
+    if (length(toBeDeleted) == 0) {
+      stop("All of the user-specified packages are dependencies for other packages and cannot be removed.")
+    }
     # Obtain filepaths for each package in the local repo
     fullDeletedPaths <- checkVersions(toBeDeleted, obj$localRepoPath, obj$pkgType, version)
     # Manually delete the package files
