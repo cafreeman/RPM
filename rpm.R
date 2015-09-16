@@ -81,13 +81,9 @@ listDeps <- function(pkgList = NULL, rVersion, obj) {
 }
 
 # List all packages in the local repository
-listLocalPkgs <- function(configPath) {
+listLocalPkgs <- function(configPath, version) {
   obj <- loadPkgJSON(configPath)
-  versions <- names(obj$rVersion)
-  installed <- list()
-  for (version in versions) {
-    installed[[paste0("v", version)]] <- as.character(pkgAvail(repos = obj$localRepoPath, type = obj$pkgType, Rversion = version)[,1])
-  }
+  installed <- as.character(pkgAvail(repos = obj$localRepoPath, type = obj$pkgType, Rversion = version)[,1])
   return(installed)
 }
 
@@ -171,10 +167,10 @@ rpmInstall <- function(newPkgs, configPath) {
   }
   pkgDelta <- list()
   for (version in versions) {
-    oldPkgList <- listLocalPkgs(version, configPath)
+    oldPkgList <- listLocalPkgs(configPath, version)
     partialAddPackage(version)
     # Get new package list and compare to original package list
-    newPkgList <- listLocalPkgs(version, configPath)
+    newPkgList <- listLocalPkgs(configPath, version)
     pkgDelta[[version]] <- setdiff(newPkgList, oldPkgList)
     obj$rVersion[[version]]$depList <- newPkgList
   }
@@ -231,9 +227,9 @@ rpmUpdate <- function(updatePkgs, configPath) {
                    Rversion = Rversion)
   }
   for (version in versions) {
-    currentPkgList <- listLocalPkgs(version, configPath)
+    currentPkgList <- listLocalPkgs(configPath, version)
     partialUpdatePackages(version)
-    newPkgList <- listLocalPkgs(version, configPath)
+    newPkgList <- listLocalPkgs(configPath, version)
     pkgDelta[[version]] <- setdiff(newPkgList, currentPkgList)
   }
   cat("The following packages have been updated:\n")
