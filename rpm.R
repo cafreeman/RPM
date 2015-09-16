@@ -2,6 +2,33 @@ library("rjson")
 library("miniCRAN")
 library("stringr")
 
+addPackage <- function(pkgs=NULL, path=NULL, repos=getOption("repos"),
+                       type="source", Rversion=R.version,
+                       writePACKAGES=TRUE, deps=TRUE, quiet=FALSE) {
+  if (is.null(path) || is.null(pkgs)) stop("path and pkgs must both be specified.")
+  prev <- checkVersions(pkgs=pkgs, path=path, type=type, Rversion=Rversion)
+  prev.df <- miniCRAN:::getPkgVersFromFile(prev)
+
+  if (deps) pkgs <- pkgDep(pkgs, repos=repos, type=type, suggests=FALSE, Rversion=Rversion)
+
+  makeRepo(pkgs=pkgs, path=path, repos=repos, type=type, Rversion=Rversion,
+           download=TRUE, writePACKAGES=FALSE, quiet=quiet)
+
+  if (length(prev)) {
+    curr <- suppressWarnings(
+              checkVersions(pkgs=pkgs, path=path, type=type, Rversion=Rversion)
+            )
+    curr.df <- miniCRAN:::getPkgVersFromFile(curr)
+
+    dupes <- with(curr.df, package[duplicated(package)])
+    if (length(dupes)) {
+      old <- lapply(dupes, function(x) { grep(paste0("^", x), basename(prev)) } )
+      file.remove(prev[unlist(old)])
+    }
+  }
+  if (writePACKAGES) invisible(updateRepoIndex(path=path, type=type, Rversion=Rversion))
+}
+
 # convert a new-line separated list to a character vector
 newLinesToChar <- function(list, fixed = FALSE) {
   str_trim(as.character(strsplit(list, "\\n", fixed = fixed)[[1]]), "both")
